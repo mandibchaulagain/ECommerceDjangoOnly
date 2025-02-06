@@ -1,16 +1,55 @@
+{%load static%}
 <!DOCTYPE html>
 <html lang="en">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
+    <link rel="stylesheet" href="{% static 'homepage/style.css'%}">
 </head>
 <body>
-    <h1>HOMEPAGE</h1>
+    <header>
+        <div class="top-bar">
+        <p>HUGE WINTER SALE. UPTO 50% OFF!<a href="#">SHOP NOW!</a></p>
+        </div>
+    </header>
+
+    <nav class="navbar">
+        <ul>
+            <li><a href="{%url 'home'%}">Home</a></li>
+            <li><a href="#">Shop</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Account</a></li>
+            <li><a href="#">Cart</a></li>
+        </ul>
+    </nav>
+
+    <section class="just-landed">
+        <h2>Just Landed</h2>
+        <div class="product-list">
+            <p>New arrivals coming soon...</p>
+        </div>
+    </section>
+
+    <section class="categories">
+        <h2>Shop Our Top Categories</h2>
+        <div class="category-list">
+            <p>Men, Women, Accessories...</p>
+        </div>
+    </section>
+
+    <section class="sale">
+        <h2>Exclusive Sale</h2>
+        <p>Upto 70% off selected items!</p>
+    </section>
+
     {%if user.is_authenticated%}
     {{user.username}}
     {%else%}
     <p>Please login</p>
     {%endif%}
+    <footer>
+        <p>&copy; 2025 Clothing Brand. All rights reserved.</p>
+    </footer>
 </body>
 </html>
