@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1
+/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1
+/hmac-sha256.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1
+/enc-base64.min.js"></script>
+    <script>
+      var hash = CryptoJS.HmacSHA256("Message", "secret");
+      var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+    //   document.write(hashInBase64);
+    </script>
+  </head>
+  <body>
+    <form
+      action="https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+      method="POST"
+    >
+    <p>amount</p>
+      <input type="text" id="amount" name="amount" value="100" required />
+      <p>tax amount</p>
+      <input
+        type="text"
+        id="tax_amount"
+        name="tax_amount"
+        value="10"
+        required
+      />
+      <p>total amount</p>
+      <input
+        type="text"
+        id="total_amount"
+        name="total_amount"
+        value="110"
+        required
+      />
+      <p>transaction_uuid</p>
+      <input
+        type="text"
+        id="transaction_uuid"
+        name="transaction_uuid"
+        value="241028"
+        required
+      />
+      <p>product_code</p>
+      <input
+        type="text"
+        id="product_code"
+        name="product_code"
+        value="EPAYTEST"
+        required
+      />
+      <p>product service charge</p>
+      <input
+        type="text"
+        id="product_service_charge"
+        name="product_service_charge"
+        value="0"
+        required
+      />
+      <p>product delivery charge</p>
+      <input
+        type="text"
+        id="product_delivery_charge"
+        name="product_delivery_charge"
+        value="0"
+        required
+      />
+      <p>success url</p>
+      <input
+        type="text"
+        id="success_url"
+        name="success_url"
+        value="https://developer.esewa.com.np/success"
+        required
+      />
+      <p>failure url</p>
+      <input
+        type="text"
+        id="failure_url"
+        name="failure_url"
+        value="https://developer.esewa.com.np/failure"
+        required
+      />
+      <p>signed field names</p>
+      <input
+        type="text"
+        id="signed_field_names"
+        name="signed_field_names"
+        value="total_amount,transaction_uuid,product_code"
+        required
+      />
+      <p>signature</p>
+      <input
+        type="text"
+        id="signature"
+        name="signature"
+        required
+      />
+      <input value=" Pay with eSewa " type="submit" class="button" style="display:block !important; background-color: #60bb46; cursor: pointer; color: #fff; border: none; padding: 5px 10px;"/>
+    </form>
+  </body>
+</html>
+<script>
+    function generateSignature() {
+        // Generate transaction UUID
+        var currentTime = new Date();
+        var formattedTime = currentTime.toISOString().slice(2, 10).replace(/-/g, '') + '-' + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds();
+        document.getElementById("transaction_uuid").value = formattedTime;
+        
+        // Retrieve payment details
+        var total_amount = document.getElementById("total_amount").value;
+        var transaction_uuid = document.getElementById("transaction_uuid").value;
+        var product_code = document.getElementById("product_code").value;
+        var secret = "8gBm/:&EnhH.1/q"; // Replace with your actual secret key
+        
+        // Generate signature
+        var hash = CryptoJS.HmacSHA256(`total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`, secret);
+        var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+        document.getElementById("signature").value = hashInBase64;
+    }
+      // Call generateSignature() when input fields are changed
+    document.getElementById("total_amount").addEventListener("input", generateSignature);
+    document.getElementById("transaction_uuid").addEventListener("input", generateSignature);
+    document.getElementById("product_code").addEventListener("input", generateSignature);
+</script>
