@@ -1,10 +1,12 @@
 {%load static%}
 <!DOCTYPE html>
 <html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
     <link rel="stylesheet" href="{% static 'homepage/style.css'%}">
+    
 </head>
 <body>
     <header>
@@ -26,8 +28,17 @@
 
     <section class="just-landed">
         <h2>Just Landed</h2>
-        <div class="product-list">
-            <p>New arrivals coming soon...</p>
+        <div class="carousel-container">  <div class="product-list">
+                {%for products in new_arrivals%}
+                    <div class="product-card">
+                        <img src="{{products.image.url}}" alt="{{products.name}}">
+                        <h3>{{products.name}}</h3>
+                        <p>${{products.price}}</p>
+                    </div>
+                {%empty%}
+                    <p>No new arrivals yet.</p>
+                {%endfor%}
+            </div>
         </div>
     </section>
 
@@ -41,6 +52,18 @@
     <section class="sale">
         <h2>Exclusive Sale</h2>
         <p>Upto 70% off selected items!</p>
+        <div class="carousel-container">  <div class="product-list">
+                {%for products in sale_products%}
+                    <div class="product-card">
+                        <img src="{{products.image.url}}" alt="{{products.name}}">
+                        <h3>{{products.name}}</h3>
+                        <p>{{products.price}}</p>
+                    </div>
+                {%empty%}
+                    <p>No sale products available.</p>
+                {%endfor%}
+            </div>
+        </div>
     </section>
 
     {%if user.is_authenticated%}
