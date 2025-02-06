@@ -7,5 +7,10 @@
 </head>
 <body>
     <h1>HOMEPAGE</h1>
+    {%if user.is_authenticated%}
+    {{user.username}}
+    {%else%}
+    <p>Please login</p>
+    {%endif%}
 </body>
 </html>
