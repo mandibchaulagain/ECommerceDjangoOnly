@@ -22,7 +22,8 @@
             <li><a href="#">About Us</a></li>
             <li><a href="#">Contact</a></li>
             <li><a href="#">Account</a></li>
-            <li><a href="#">Cart</a></li>
+            <li><a href="{% url 'view_cart' %}">Cart (<span id="cart-count">{{ cart_count }}</span>)</a></li>
+
         </ul>
     </nav>
 
@@ -34,6 +35,7 @@
                         <img src="{{products.image.url}}" alt="{{products.name}}">
                         <h3>{{products.name}}</h3>
                         <p>${{products.price}}</p>
+                        <a href="{% url 'add_to_cart' products.id %}" class="add-to-cart-btn">Add to Cart</a>
                     </div>
                 {%empty%}
                     <p>No new arrivals yet.</p>
