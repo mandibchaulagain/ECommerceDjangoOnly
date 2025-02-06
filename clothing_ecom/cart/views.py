@@ -31,4 +31,14 @@ def remove_from_cart(request, cart_item_id):
     return redirect("view_cart")
 
 def checkout(request):
-    return render(request,"cart/checkout.html")
+    cart_items = CartItem.objects.filter(user=request.user)
+    total_price = sum(item.total_price() for item in cart_items)
+    amount = total_price
+    tax_amount = 10
+    total_amount = amount+tax_amount
+    return render(request,"cart/checkout.html", {
+        'amount':amount,
+        'tax_amount':tax_amount,
+        'total_amount': total_amount,
+        
+    })
