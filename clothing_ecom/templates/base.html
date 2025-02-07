@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Homepage</title>
     <link rel="stylesheet" href="{% static 'homepage/style.css'%}" />
-    
+    {%block head%}
+    {%endblock%}
+    <link rel="stylesheet" href="{% static 'homepage/style.css'%}" />
   </head>
   <body>
     <header>
@@ -17,18 +19,20 @@
 
     <nav class="navbar">
       <ul>
-        <li><a href="{%url 'home'%}">Home</a></li>
-        <li><a href="#">Shop</a></li>
-        <li><a href="#">About Us</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="#">Account</a></li>
-        <li>
-          <a href="{% url 'view_cart' %}"
-            >Cart (<span id="cart-count">{{ cart_count }}</span>)</a
-          >
-        </li>
+          <li><a href="{%url 'home'%}">Home</a></li>
+          <li><a>{%if user.is_authenticated%}
+              {{user.username}}
+              {%else%}
+              Account
+              {%endif%}</a></li>
+          <li><a href="{% url 'view_cart' %}">Cart (<span id="cart-count">{{ cart_count }}</span>)</a></li>
+          {%if user.is_authenticated%}
+          <li><a href="{% url 'logout'%}">Logout</a></li>
+          {%else%}
+          <li><a href="{% url 'login'%}">Login</a></li>
+          {%endif%}
       </ul>
-    </nav>
+  </nav>
     {%block body%} {%endblock%}
   </body>
 </html>

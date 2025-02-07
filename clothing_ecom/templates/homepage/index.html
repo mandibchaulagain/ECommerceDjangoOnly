@@ -18,51 +18,39 @@
     <nav class="navbar">
         <ul>
             <li><a href="{%url 'home'%}">Home</a></li>
-            <li><a href="#">Shop</a></li>
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Account</a></li>
+            <li><a>{%if user.is_authenticated%}
+                {{user.username}}
+                {%else%}
+                Account
+                {%endif%}</a></li>
             <li><a href="{% url 'view_cart' %}">Cart (<span id="cart-count">{{ cart_count }}</span>)</a></li>
-
+            {%if user.is_authenticated%}
+            <li><a href="{% url 'logout'%}">Logout</a></li>
+            {%else%}
+            <li><a href="{% url 'login'%}">Login</a></li>
+            {%endif%}
         </ul>
     </nav>
 
     <section class="just-landed">
         <h2>Just Landed</h2>
-        <div class="carousel-container">  <div class="product-list">
+        <div class="carousel-container">  
+            <div class="product-list">
                 {%for products in new_arrivals%}
                     <div class="product-card">
                         <img src="{{products.image.url}}" alt="{{products.name}}">
                         <h3>{{products.name}}</h3>
-                        <p>${{products.price}}</p>
+                        <p>Rs. {{products.price}}</p>
+                        <a href="{% url 'buy' products.id%}" class="buy-btn"> Buy Now</a>                        
                         <a href="{% url 'add_to_cart' products.id %}" class="add-to-cart-btn">Add to Cart</a>
+                        {%for message in messages%}
+                        {%if products.quantity_available <= 0%}
+                        <p>WARNING: {{message}}</p>
+                        {%endif%}
+                        {%endfor%}
                     </div>
                 {%empty%}
                     <p>No new arrivals yet.</p>
-                {%endfor%}
-            </div>
-        </div>
-    </section>
-
-    <section class="categories">
-        <h2>Shop Our Top Categories</h2>
-        <div class="category-list">
-            <p>Men, Women, Accessories...</p>
-        </div>
-    </section>
-
-    <section class="sale">
-        <h2>Exclusive Sale</h2>
-        <p>Upto 70% off selected items!</p>
-        <div class="carousel-container">  <div class="product-list">
-                {%for products in sale_products%}
-                    <div class="product-card">
-                        <img src="{{products.image.url}}" alt="{{products.name}}">
-                        <h3>{{products.name}}</h3>
-                        <p>{{products.price}}</p>
-                    </div>
-                {%empty%}
-                    <p>No sale products available.</p>
                 {%endfor%}
             </div>
         </div>

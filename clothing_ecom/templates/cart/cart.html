@@ -1,26 +1,44 @@
 {% extends 'base.html' %}
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cart/cart.css' %}">
+{% endblock %}
+
 {% block body %}
-<h2>Your Cart</h2>
-<table>
-    <tr>
-        <th>Product</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Total</th>
-    </tr>
-    {% for item in cart_items %}
-    <tr>
-        <td>{{ item.product.name }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>${{ item.product.price }}</td>
-        <td>${{ item.total_price }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4">Your cart is empty.</td>
-    </tr>
-    {% endfor %}
-</table>
-<p>Total: ${{ total_price }}</p>
-<a href="checkout"><button value="checkout">Checkout</button></a>
+<div class="cart-page">
+    <div class="cart-container">
+        <h2 class="cart-heading">Your Cart</h2>
+        <table class="cart-table">
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>Rs. {{ item.product.price }}</td>
+                <td>Rs. {{ item.total_price }} <a href="{% url 'increase_quantity' item.id item.product.id%}" class="btn btn-success">Increase Quantity</a>
+        
+                    <!-- Decrease quantity button -->
+                    <a href="{% url 'decrease_quantity' item.id item.product.id%}" class="btn btn-warning">Decrease Quantity</a>
+            
+                    <!-- Remove item button -->
+                    <a href="{% url 'remove_from_cart' item.id item.product.id item.quantity %}" class="btn btn-danger">Remove from Cart</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Your cart is empty.</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {%for message in messages%}
+        <p>WARNING: {{message}}</p>
+        {%endfor%}
+        <p class="cart-total-price">Total: Rs. {{ total_price }}</p>
+        <a href="checkout"><button class="cart-checkout-button" value="checkout">Checkout</button></a>
+    </div>
+</div>
 {% endblock %}

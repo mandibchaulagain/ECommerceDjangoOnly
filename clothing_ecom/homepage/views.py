@@ -9,3 +9,6 @@ def home(request):
         'new_arrivals':new_arrivals,
         'sale_products':sale_products
     })
+
+def thankyoupage(request):
+    return render(request,"homepage/thankyoupage.html")

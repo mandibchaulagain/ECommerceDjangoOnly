@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -60,25 +60,28 @@
         box-shadow: none;
         }
 
-    </style>
+    </style> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
   </head>
   <body>
     <div class="checkout-container">
       <h2>Checkout</h2>
       <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
-        <div class="form-group">
-          <!-- <label for="amount">Amount</label> -->
-          <input type="hidden" id="amount" name="amount" value="{{ amount }}" readonly />
+        <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
+          <label for="amount">Amount</label>
+          <input type="hidden" id="amount" name="amount" value="{{ amount }}" readonly style="text-align: right; width: auto;"/>
+          <span style="font-size: 18px;font-weight: bold">Rs. {{amount}}</span>
         </div>
-        <div class="form-group">
-          <!-- <label for="tax_amount">Tax Amount</label> -->
-          <input type="hidden" id="tax_amount" name="tax_amount" value="{{tax_amount}}" readonly />
+        <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
+          <label for="tax_amount">Tax Amount</label>
+          <input type="hidden" id="tax_amount" name="tax_amount" value="{{tax_amount}}" readonly style="text-align: right; width: auto;"/>
+          <span style="font-size: 18px;font-weight: bold">Rs. {{tax_amount}}</span>
         </div>
         <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
             <label for="total_amount" style="font-weight: bold;">Total Amount:</label>
-            <input type="text" id="total_amount" name="total_amount" value="Rs. {{ total_amount }}" readonly 
-                style="text-align: right; width: auto; font-size: 18px; font-weight: bold; border: none;" />
+            <input type="hidden" id="total_amount" name="total_amount" value="{{ total_amount }}" readonly 
+                style="text-align: right; width: auto; border: none;" />
+                <span style="font-size: 18px;font-weight: bold">Rs. {{ total_amount }}</span>
         </div>
         
         <div class="form-group">
@@ -88,11 +91,12 @@
         <input type="hidden" id="product_code" name="product_code" value="EPAYTEST" />
         <input type="hidden" id="product_service_charge" name="product_service_charge" value="0" />
         <input type="hidden" id="product_delivery_charge" name="product_delivery_charge" value="0" />
-        <input type="hidden" id="success_url" name="success_url" value="https://developer.esewa.com.np/success" />
+        <input type="text" id="success_url" name="success_url" value="http://127.0.0.1:8000/cart/payment/success" /> <!--http://127.0.0.1:8000/cart/payment/success/-->
         <input type="hidden" id="failure_url" name="failure_url" value="https://developer.esewa.com.np/failure" />
         <input type="hidden" id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
-        <input type="hidden" id="signature" name="signature" required />
+        <input type="text" id="signature" name="signature" required />
         <button type="submit" class="button">Pay with eSewa</button>
+        
       </form>
     </div>
     <script>
