@@ -1,118 +1,116 @@
+{%load static%}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout</title>
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
-      .checkout-container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        width: 400px;
-      }
-      .checkout-container h2 {
-        text-align: center;
-        color: #333;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-        font-size: 20px;
-      }
-      input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border: none;
-        font-size: 18px;
-      }
-      .button {
-        width: 100%;
-        background-color: #60bb46;
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      .button:hover {
-        background-color: #4ca936;
-      }
-      .form-group input[readonly]:focus {
-        outline: none;
-        border-color: #ddd !important;
-        box-shadow: none;
-        }
-
-    </style> -->
+    
+    <link rel="stylesheet" href="{%static 'cart/checkoutstyle.css'%}">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
   </head>
   <body>
+    <header>
+      <div class="top-bar">
+      <p>HUGE WINTER SALE. UPTO 50% OFF!<a href="#">SHOP NOW!</a></p>
+      </div>
+  </header>
+
+  <nav class="navbar">
+      <ul>
+          <li><a href="{%url 'home'%}">Home</a></li>
+          <li><a>{%if user.is_authenticated%}
+              {{user.username}}
+              {%else%}
+              Account
+              {%endif%}</a></li>
+          <li><a href="{% url 'view_cart' %}">Cart (<span id="cart-count">{{ cart_count }}</span>)</a></li>
+          {%if user.is_authenticated%}
+          <li><a href="{% url 'logout'%}">Logout</a></li>
+          {%else%}
+          <li><a href="{% url 'login'%}">Login</a></li>
+          {%endif%}
+      </ul>
+  </nav>
     <div class="checkout-container">
       <h2>Checkout</h2>
       <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
-        <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
-          <label for="amount">Amount</label>
-          <input type="hidden" id="amount" name="amount" value="{{ amount }}" readonly style="text-align: right; width: auto;"/>
-          <span style="font-size: 18px;font-weight: bold">Rs. {{amount}}</span>
-        </div>
-        <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
-          <label for="tax_amount">Tax Amount</label>
-          <input type="hidden" id="tax_amount" name="tax_amount" value="{{tax_amount}}" readonly style="text-align: right; width: auto;"/>
-          <span style="font-size: 18px;font-weight: bold">Rs. {{tax_amount}}</span>
-        </div>
-        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
-            <label for="total_amount" style="font-weight: bold;">Total Amount:</label>
-            <input type="hidden" id="total_amount" name="total_amount" value="{{ total_amount }}" readonly 
-                style="text-align: right; width: auto; border: none;" />
-                <span style="font-size: 18px;font-weight: bold">Rs. {{ total_amount }}</span>
-        </div>
-        
-        <div class="form-group">
-          <!-- <label for="transaction_uuid">Transaction ID</label> -->
-          <input type="hidden" id="transaction_uuid" name="transaction_uuid" readonly />
-        </div>
-        <input type="hidden" id="product_code" name="product_code" value="EPAYTEST" />
-        <input type="hidden" id="product_service_charge" name="product_service_charge" value="0" />
-        <input type="hidden" id="product_delivery_charge" name="product_delivery_charge" value="0" />
-        <input type="text" id="success_url" name="success_url" value="http://127.0.0.1:8000/cart/payment/success" /> <!--http://127.0.0.1:8000/cart/payment/success/-->
-        <input type="hidden" id="failure_url" name="failure_url" value="https://developer.esewa.com.np/failure" />
-        <input type="hidden" id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
-        <input type="text" id="signature" name="signature" required />
-        <button type="submit" class="button">Pay with eSewa</button>
-        
+          <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
+              <label for="amount">Amount</label>
+              <input type="hidden" id="amount" name="amount" value="{{ amount }}" readonly style="text-align: right; width: auto;"/>
+              <span style="font-size: 18px;font-weight: bold">Rs. {{amount}}</span>
+          </div>
+          <div class="form-group" style="display: flex;align-items: center;justify-content: space-between;">
+              <label for="tax_amount">Tax Amount</label>
+              <input type="hidden" id="tax_amount" name="tax_amount" value="{{tax_amount}}" readonly style="text-align: right; width: auto;"/>
+              <span style="font-size: 18px;font-weight: bold">Rs. {{tax_amount}}</span>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+              <label for="total_amount" style="font-weight: bold;">Total Amount (excl. Esewa Charges):</label>
+              <input type="hidden" id="total_amount" name="total_amount" value="{{ total_amount }}" readonly 
+                  style="text-align: right; width: auto; border: none;" />
+                  <span style="font-size: 18px;font-weight: bold">Rs. {{ total_amount }}</span>
+          </div>
+          
+          <div class="form-group">
+              <!-- Hidden transaction_uuid, dynamically generated in JS -->
+              <!-- <label for="">transaction uuid</label> -->
+              <input type="hidden" id="transaction_uuid" name="transaction_uuid" readonly />
+          </div>
+          <!-- <label for="">product code</label> -->
+          <input type="hidden" id="product_code" name="product_code" value="EPAYTEST" readonly/>
+          <input type="hidden" id="product_service_charge" name="product_service_charge" value="0" />
+          <input type="hidden" id="product_delivery_charge" name="product_delivery_charge" value="0" />
+          
+          <!-- Success and Failure URLs will be dynamically populated -->
+          <input type="hidden" id="success_url" name="success_url" value="http://127.0.0.1:8000/cart/payment/success" />
+          <input type="hidden" id="failure_url" name="failure_url" />
+          
+          <!-- Signed field names -->
+          <input type="hidden" id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
+          
+          <!-- Signature field -->
+           <!-- <label for="">signature</label> -->
+          <input type="hidden" id="signature" name="signature" required readonly/>
+          
+          <button type="submit" class="button">Pay with eSewa</button>
       </form>
-    </div>
-    <script>
-      function generateSignature() {
-        var currentTime = new Date();
-        var formattedTime = currentTime.toISOString().slice(2, 10).replace(/-/g, '') + '-' + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds();
-        document.getElementById("transaction_uuid").value = formattedTime;
-        var total_amount = document.getElementById("total_amount").value;
-        var transaction_uuid = document.getElementById("transaction_uuid").value;
-        var product_code = document.getElementById("product_code").value;
-        var secret = "8gBm/:&EnhH.1/q";
-        var hash = CryptoJS.HmacSHA256(`total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`, secret);
-        var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
-        document.getElementById("signature").value = hashInBase64;
-      }
-      window.onload = generateSignature;
-    </script>
+  </div>
+  
+  <script>
+    function generateSignature() {
+      var currentTime = new Date();
+      var formattedTime = currentTime.toISOString().slice(2, 10).replace(/-/g, '') + '-' + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds();
+      
+      // Set the transaction UUID dynamically
+      document.getElementById("transaction_uuid").value = formattedTime;
+      
+      // Get the values of the total amount, transaction UUID, and product code
+      var total_amount = document.getElementById("total_amount").value;
+      var transaction_uuid = document.getElementById("transaction_uuid").value;
+      var product_code = document.getElementById("product_code").value;
+      
+      // Define the secret key for signature generation (ensure it's secure)
+      var secret = "8gBm/:&EnhH.1/q";
+      var message = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
+      // Generate the HMAC SHA256 hash with the required parameters
+      var hash = CryptoJS.HmacSHA256(message, secret);
+      var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+      
+      // Set the signature in the hidden input field
+      document.getElementById("signature").value = hashInBase64;
+      console.log("signature generated in JS:",hashInBase64)
+      
+      // Set the failure URL dynamically with query parameters
+      var failureUrl = "http://127.0.0.1:8000/cart/payment/failure";
+      failureUrl += `?transaction_uuid=${transaction_uuid}&total_amount=${total_amount}&product_code=${product_code}`;
+      document.getElementById("failure_url").value = failureUrl;
+    }
+  
+    // Call the function when the page loads
+    window.onload = generateSignature;
+  </script>
+  
   </body>
 </html>

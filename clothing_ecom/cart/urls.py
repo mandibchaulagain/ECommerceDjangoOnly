@@ -9,7 +9,9 @@ urlpatterns = [
     path("checkout/", views.checkout, name="checkout"),
     path("increase/<int:cart_item_id>/<int:product_id>/", views.increase_quantity, name="increase_quantity"),
     path("decrease/<int:cart_item_id>/<int:product_id>/", views.decrease_quantity, name="decrease_quantity"),
-    path('payment/success/', views.success_payment, name='payment_success'),
+    path('payment/success/', views.success_payment, name='payment_success'),    
+    path('payment/failure/', views.failure_payment, name='payment_failure'),
+    
 
     # path("update/<int:cart_item_id>/", views.update_cart, name="update_cart"),  # Update quantity
 ]
