@@ -3,5 +3,5 @@ from homepage.models import Product
 # Create your views here.
 def mensClothing(request):
     products = Product.objects.filter(category="Men")
-
+    
     return render(request, "catalog/mensClothes.html", {'products':products})

@@ -13,6 +13,7 @@ import hmac
 import hashlib
 from django.db import transaction
 from django.db import IntegrityError
+import shortuuid
 
 @login_required
 def add_to_cart(request, product_id):
@@ -87,11 +88,12 @@ def checkout(request):
         amount = total_price
         tax_amount = 10
         total_amount = amount+tax_amount
+        transaction_uuid = shortuuid.uuid()
         return render(request,"cart/checkout.html", {
             'amount':amount,
             'tax_amount':tax_amount,
             'total_amount': total_amount,
-            
+            'transaction_uuid': transaction_uuid,
         })
     else:
         return render(request, 'homepage/errorpage.html', {
@@ -109,92 +111,19 @@ def buy(request, product_id):
     tax_rate = Decimal('0.1')
     tax_amount = amount*tax_rate
     total_amount = amount+tax_amount
+    transaction_uuid = shortuuid.uuid()
     return render(request, "cart/checkout.html",{
         'amount':amount,
         'tax_amount':tax_amount,
         'total_amount':total_amount,
+        'transaction_uuid': transaction_uuid,
     })
 
 SECRET_KEY = "8gBm/:&EnhH.1/q"
 
-# def success_payment(request):
-#     # Get the response body (Base64 encoded)
-#     encoded_response = request.GET.get('data', '')
-    
-#     if not encoded_response:
-#         return JsonResponse({'error': 'No response received from eSewa'}, status=400)
-    
-#     # Step 1: Decode the Base64 encoded response
-#     decoded_response = base64.b64decode(encoded_response).decode('utf-8')
-#     response_data = json.loads(decoded_response)
-    
-#     transaction_code = response_data.get('transaction_code')
-#     status = response_data.get('status')
-#     total_amount = response_data.get('total_amount')
-
-#     # Step 3: Verify if the payment status is COMPLETE
-#     if status != 'COMPLETE':
-#         return JsonResponse({'error': 'Payment was not completed'}, status=400)
-    
-#     # Step 5: Process the payment and decrease the product quantities
-#     cart_items = CartItem.objects.filter(user=request.user)
-#     # is_paid=False
-    
-#     try:
-#         with transaction.atomic():  # Ensure atomicity of the payment process
-#             for cart_item in cart_items:
-#                 product = cart_item.product
-#                 # Update product quantity (decrease by quantity in cart)
-#                 if product.quantity_available >= cart_item.quantity:
-#                     # product.quantity_available -= cart_item.quantity
-#                     # product.save()
-                    
-#                     # Update CartItem quantity to reflect the actual purchase
-#                     cart_item.quantity -= cart_item.quantity  # Set it to zero or the actual purchased quantity
-#                     cart_item.save()
-#                     if cart_item.quantity ==0:
-#                         cart_item.delete()
-
-#                 else:
-#                     # If there's not enough stock, raise an exception
-#                     raise ValueError(f"Not enough stock for product {product.name}.")
-            
-#             # Step 6: Mark CartItems as paid
-#             # cart_items.update(is_paid=True) i dont have is_paid in my model
-            
-#             # Return a success response after processing the payment
-#             # return render(request, 'cart/payment_success.html', {
-#             #     'transaction_code': transaction_code,
-#             #     'total_amount': total_amount
-#             # })
-#             return redirect('view_cart')
-
-#     except ValueError as e:
-#         # If there's an issue (e.g., not enough stock), handle the exception
-#         return JsonResponse({'error': str(e)}, status=400)
-
-# import requests
-# def get_transaction_status(transaction_uuid, product_code, total_amount):
-#     url = f"https://rc.esewa.com.np/api/epay/transaction/status/?product_code={product_code}&total_amount={total_amount}&transaction_uuid={transaction_uuid}"
-    
-#     response = requests.get(url)
-    
-#     if response.status_code == 200:
-#         return response.json()  # Return the JSON response
-#     else:
-#         return None  # Or handle the error accordingly
 
 import requests
 from .models import PaymentTransaction
-# def get_transaction_status(transaction_uuid, product_code, total_amount):
-#     url = f"https://rc.esewa.com.np/api/epay/transaction/status/?product_code={product_code}&total_amount={total_amount}&transaction_uuid={transaction_uuid}"
-#     response = requests.get(url)
-    
-#     if response.status_code == 200:
-#         return response.json()  # Return the JSON response
-#     else:
-#         return None  # Handle error accordingly
-# def failure_payment(request):
 #     e
 secret_key = "8gBm/:&EnhH.1/q"
 def generate_signature(secret_key, total_amount, transaction_uuid, product_code):
@@ -209,21 +138,10 @@ def generate_signature(secret_key, total_amount, transaction_uuid, product_code)
     signature = base64.b64encode(digest).decode('utf-8')
     
     return signature
-    # hmac_sha256 = hmac.new(secret, message, hashlib.sha256)
-    # digest = hmac_sha256.digest()
-    # signature = base64.b64encode(digest).decode('utf-8') 
-
-    # hashlib.sha256(signature_string.encode('utf-8')).hexdigest()
-    # # Step 2: Add the secret key to the hash (same key used in JS)
-    # signature_string_with_key = hashed_string + secret_key
-
-    # # Step 3: Return the base64-encoded signature
-    # signature = base64.b64encode(signature_string_with_key.encode('utf-8')).decode('utf-8')
-    # return signature
 
 
 def success_payment(request):
-    # Get the response body (Base64 encoded)
+    
     encoded_response = request.GET.get('data', '')
     
     if not encoded_response:
@@ -241,13 +159,6 @@ def success_payment(request):
     transaction_uuid = response_data.get('transaction_uuid')
     product_code = response_data.get('product_code')
     print("Product code:",product_code)
-    # regenerated_signature = generate_signature(secret_key, total_amount,transaction_uuid,product_code)
-    # print("Regenerated signature brought just before checking in:",regenerated_signature)
-    # if signature != regenerated_signature:
-    #     return render(request, 'homepage/errorpage.html', {
-    #         'error_message': f"esewa signature: {signature} and regenerated signature: {regenerated_signature} transaction_uuid: {transaction_uuid}, total amount: {total_amount}, product code: {product_code}"
-    #     })
-    # Save the transaction details in the PaymentTransaction model
     payment_transaction = PaymentTransaction(
         transaction_uuid=transaction_code,
         product_code='EPAYTEST',  # This is the product code, adjust as necessary

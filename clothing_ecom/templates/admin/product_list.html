@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select product to change - StyleHub Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'admin-dark': '#1a1a1a',
+                        'admin-darker': '#0f0f0f',
+                        'admin-blue': '#4a90e2'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-admin-darker text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-admin-dark border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-white">StyleHub Admin</h1>
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="{% url 'admin_dashboard' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="{% url 'admin_product_list' %}" class="text-white hover:text-gray-300 px-3 py-2 text-sm font-medium">Products</a>
+                        <a href="{% url 'admin_transaction_list' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Transactions</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">View Site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-white">Select product to change</h1>
+            <a href="{% url 'admin_product_add' %}" class="bg-admin-blue hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                ADD PRODUCT
+            </a>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="bg-admin-dark rounded-lg p-4 mb-6 border border-gray-700">
+            <form method="GET" class="flex flex-wrap gap-4 items-center">
+                <div class="flex-1 min-w-64">
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search products..." 
+                           class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue">
+                </div>
+                <select name="category" class="bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}" {% if category == category_filter %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <select name="stock" class="bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue">
+                    <option value="">All Stock</option>
+                    <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock (≤5)</option>
+                    <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of Stock</option>
+                </select>
+                <button type="submit" class="bg-admin-blue hover:bg-blue-600 text-white px-4 py-2 rounded">Search</button>
+            </form>
+        </div>
+
+        <!-- Bulk Actions -->
+        <form method="POST" action="{% url 'admin_product_bulk_action' %}" id="bulk-form">
+            {% csrf_token %}
+            <div class="bg-admin-dark rounded-lg p-4 mb-4 border border-gray-700">
+                <div class="flex items-center gap-4">
+                    <label class="text-white">Action:</label>
+                    <select name="action" class="bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue">
+                        <option value="">---------</option>
+                        <option value="delete">Delete selected products</option>
+                        <option value="update_stock">Update stock</option>
+                        <option value="change_category">Change category</option>
+                    </select>
+                    <input type="number" name="new_stock" placeholder="New stock" class="bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue" style="display:none;">
+                    <select name="new_category" class="bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue" style="display:none;">
+                        {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Go</button>
+                    <span class="text-gray-400" id="selected-count">0 of {{ total_count }} selected</span>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="bg-admin-dark rounded-lg border border-gray-700 overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-admin-darker">
+                        <tr>
+                            <th class="px-4 py-3 text-left">
+                                <input type="checkbox" id="select-all" class="rounded bg-admin-darker border-gray-600 text-admin-blue focus:ring-admin-blue">
+                            </th>
+                            <th class="px-4 py-3 text-left text-white font-medium">NAME</th>
+                            <th class="px-4 py-3 text-left text-white font-medium">CATEGORY</th>
+                            <th class="px-4 py-3 text-left text-white font-medium">PRICE</th>
+                            <th class="px-4 py-3 text-left text-white font-medium">QUANTITY AVAILABLE</th>
+                            <th class="px-4 py-3 text-left text-white font-medium">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in page_obj %}
+                        <tr class="border-t border-gray-700 hover:bg-admin-darker">
+                            <td class="px-4 py-3">
+                                <input type="checkbox" name="selected_products" value="{{ product.id }}" class="product-checkbox rounded bg-admin-darker border-gray-600 text-admin-blue focus:ring-admin-blue">
+                            </td>
+                            <td class="px-4 py-3">
+                                <a href="{% url 'admin_product_edit' product.id %}" class="text-admin-blue hover:text-blue-400">{{ product.name }}</a>
+                            </td>
+                            <td class="px-4 py-3 text-gray-300">{{ product.category }}</td>
+                            <td class="px-4 py-3 text-gray-300">${{ product.price }}</td>
+                            <td class="px-4 py-3 text-gray-300">{{ product.quantity_available }}</td>
+                            <!-- <td class="px-4 py-3">
+                                <input type="number" value="{{ product.quantity_available }}" 
+                                       class="w-20 bg-admin-darker border border-gray-600 rounded px-2 py-1 text-white focus:outline-none focus:border-admin-blue stock-input"
+                                       data-product-id="{{ product.id }}" readonly>
+                            </td> -->
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <a href="{% url 'admin_product_edit' product.id %}" class="text-admin-blue hover:text-blue-400 text-sm">Edit</a>
+                                    <a href="{% url 'admin_product_delete' product.id %}" class="text-red-400 hover:text-red-300 text-sm">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-400">No products found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-between items-center mt-6">
+            <div class="text-gray-400">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} products
+            </div>
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&category={{ category_filter }}&stock={{ stock_filter }}" 
+                   class="bg-admin-dark hover:bg-gray-700 text-white px-3 py-2 rounded border border-gray-600">Previous</a>
+                {% endif %}
+                
+                <span class="bg-admin-blue text-white px-3 py-2 rounded">{{ page_obj.number }}</span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&category={{ category_filter }}&stock={{ stock_filter }}" 
+                   class="bg-admin-dark hover:bg-gray-700 text-white px-3 py-2 rounded border border-gray-600">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer Info -->
+        <div class="mt-6 text-gray-400 text-sm">
+            {{ total_count }} products
+        </div>
+    </div>
+
+    <script>
+        // Select all functionality
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+
+        // Update selected count
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.product-checkbox:checked').length;
+            document.getElementById('selected-count').textContent = `${selected} of {{ total_count }} selected`;
+        }
+
+        // Add event listeners to checkboxes
+        document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+
+        // Bulk action form handling
+        document.querySelector('select[name="action"]').addEventListener('change', function() {
+            const stockInput = document.querySelector('input[name="new_stock"]');
+            const categorySelect = document.querySelector('select[name="new_category"]');
+            
+            // Hide all additional inputs
+            stockInput.style.display = 'none';
+            categorySelect.style.display = 'none';
+            
+            // Show relevant input based on action
+            if (this.value === 'update_stock') {
+                stockInput.style.display = 'block';
+            } else if (this.value === 'change_category') {
+                categorySelect.style.display = 'block';
+            }
+        });
+
+        // Quick stock update
+        document.querySelectorAll('.stock-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                const productId = this.dataset.productId;
+                const newStock = this.value;
+                
+                fetch('{% url "admin_quick_update_stock" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        new_stock: newStock
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.style.borderColor = '#7ed321';
+                        setTimeout(() => {
+                            this.style.borderColor = '';
+                        }, 2000);
+                    } else {
+                        this.style.borderColor = '#d0021b';
+                        alert('Error: ' + data.message);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

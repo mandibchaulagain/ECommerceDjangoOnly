@@ -4,9 +4,9 @@
     <div class="cart-item">
         <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
         <p>{{ item.product.name }}</p>
-        <p>Price: Rs. {{ item.product.price }}</p>
+        <p>Price: $ {{ item.product.price }}</p>
         <p>Quantity: {{ item.quantity }}</p>
-        <p>Total: Rs. {{ item.total_price }}</p>
+        <p>Total: $ {{ item.total_price }}</p>
         <a href="{% url 'cart:remove_from_cart' item.id %}" class="remove-btn">Remove</a>
     </div>
 {% empty %}

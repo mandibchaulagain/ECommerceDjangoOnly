@@ -1,0 +1,316 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select payment transaction to change - StyleHub Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'admin-dark': '#1a1a1a',
+                        'admin-darker': '#0f0f0f',
+                        'admin-blue': '#4a90e2',
+                        'admin-sidebar': '#2c3e50'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-admin-darker text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-admin-dark border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-white">StyleHub Admin</h1>
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="{% url 'admin_dashboard' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="{% url 'admin_product_list' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Products</a>
+                        <a href="{% url 'admin_transaction_list' %}" class="text-white hover:text-gray-300 px-3 py-2 text-sm font-medium">Transactions</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">View Site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-white">Select payment transaction to change</h1>
+                
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-6">
+                <form method="GET" class="flex items-center gap-4">
+                    <div class="flex items-center bg-admin-dark border border-gray-600 rounded px-3 py-2 flex-1 max-w-md">
+                        <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" name="search" value="{{ search_query }}" placeholder="Search transactions..." 
+                               class="bg-transparent text-white placeholder-gray-400 focus:outline-none flex-1">
+                    </div>
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Search</button>
+                </form>
+            </div>
+
+            <!-- Bulk Actions -->
+            <form method="POST" action="{% url 'admin_transaction_bulk_action' %}" id="bulk-form">
+                {% csrf_token %}
+                <div class="flex items-center gap-4 mb-4">
+                    <label class="text-white">Action:</label>
+                    <select name="action" class="bg-admin-dark border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue">
+                        <option value="">---------</option>
+                        <option value="delete">Delete selected transactions</option>
+                        <option value="update_status">Update status</option>
+                    </select>
+                    <select name="new_status" class="bg-admin-dark border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue" style="display:none;">
+                        {% for status_code, status_display in status_choices %}
+                        <option value="{{ status_code }}">{{ status_display }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Go</button>
+                    <span class="text-gray-400" id="selected-count">0 of {{ total_count }} selected</span>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="bg-admin-dark rounded border border-gray-700 overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-admin-darker">
+                            <tr>
+                                <th class="px-4 py-3 text-left w-8">
+                                    <input type="checkbox" id="select-all" class="rounded bg-admin-darker border-gray-600 text-admin-blue focus:ring-admin-blue">
+                                </th>
+                                <th class="px-4 py-3 text-left text-white font-medium">TRANSACTION UUID</th>
+                                <th class="px-4 py-3 text-left text-white font-medium">PRODUCT CODE</th>
+                                <th class="px-4 py-3 text-left text-white font-medium">TOTAL AMOUNT</th>
+                                <th class="px-4 py-3 text-left text-white font-medium">STATUS</th>
+                                <th class="px-4 py-3 text-left text-white font-medium">REF ID</th>
+                                <th class="px-4 py-3 text-left text-white font-medium">CREATED AT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in page_obj %}
+                            <tr class="border-t border-gray-700 hover:bg-admin-darker">
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" name="selected_transactions" value="{{ transaction.id }}" class="transaction-checkbox rounded bg-admin-darker border-gray-600 text-admin-blue focus:ring-admin-blue">
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="{% url 'admin_transaction_edit' transaction.id %}" class="text-admin-blue hover:text-blue-400">{{ transaction.transaction_uuid }}</a>
+                                </td>
+                                <td class="px-4 py-3 text-gray-300">{{ transaction.product_code }}</td>
+                                <td class="px-4 py-3 text-gray-300">{{ transaction.total_amount }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 rounded text-xs font-medium
+                                        {% if transaction.status == 'PENDING' %}bg-yellow-900 text-yellow-200
+                                        {% elif transaction.status == 'COMPLETE' %}bg-green-900 text-green-200
+                                        {% elif transaction.status == 'FAILED' %}bg-red-900 text-red-200
+                                        {% elif transaction.status == 'CANCELED' %}bg-gray-700 text-gray-300
+                                        {% elif transaction.status == 'FULL_REFUND' %}bg-purple-900 text-purple-200
+                                        {% elif transaction.status == 'PARTIAL_REFUND' %}bg-purple-900 text-purple-200
+                                        {% elif transaction.status == 'AMBIGUOUS' %}bg-orange-900 text-orange-200
+                                        {% elif transaction.status == 'NOT_FOUND' %}
+                                        {% else %}bg-gray-700 text-gray-300{% endif %}">
+                                        {{ transaction.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-gray-300">{{ transaction.ref_id|default:"-" }}</td>
+                                <td class="px-4 py-3 text-gray-300">{{ transaction.created_at|date:"M j, Y, g:i a" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-400">No transactions found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="flex justify-between items-center mt-6">
+                <div class="text-gray-400">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} transactions
+                </div>
+                <div class="flex gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}&date_filter={{ date_filter }}" 
+                       class="bg-admin-dark hover:bg-gray-700 text-white px-3 py-2 rounded border border-gray-600">Previous</a>
+                    {% endif %}
+                    
+                    <span class="bg-admin-blue text-white px-3 py-2 rounded">{{ page_obj.number }}</span>
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status={{ status_filter }}&date_filter={{ date_filter }}" 
+                       class="bg-admin-dark hover:bg-gray-700 text-white px-3 py-2 rounded border border-gray-600">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Footer Info -->
+            <div class="mt-6 text-gray-400 text-sm">
+                {{ total_count }} transactions
+            </div>
+        </div>
+
+        <!-- Sidebar Filter -->
+        <div class="w-80 bg-admin-sidebar p-6 border-l border-gray-700">
+            <h3 class="text-lg font-medium text-white mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                </svg>
+                FILTER
+            </h3>
+
+            <form method="GET" class="space-y-6">
+                <input type="hidden" name="search" value="{{ search_query }}">
+                
+                <!-- Show counts checkbox -->
+                <div class="flex items-center">
+                    <input type="checkbox" id="show-counts" class="rounded bg-admin-dark border-gray-600 text-admin-blue focus:ring-admin-blue mr-2">
+                    <label for="show-counts" class="text-gray-300 text-sm">Show counts</label>
+                </div>
+
+                <!-- By status -->
+                <div>
+                    <h4 class="text-white font-medium mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L4.293 6.707A1 1 0 014 6V4z"></path>
+                        </svg>
+                        By status
+                    </h4>
+                    <div class="space-y-2">
+                        <div>
+                            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if date_filter %}date_filter={{ date_filter }}&{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if not status_filter %}font-medium{% endif %}">All</a>
+                        </div>
+                        <div>
+                            <a href="?status=PENDING{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'PENDING' %}font-medium{% endif %}">Pending</a>
+                        </div>
+                        <div>
+                            <a href="?status=COMPLETE{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'COMPLETE' %}font-medium{% endif %}">Complete</a>
+                        </div>
+                        <div>
+                            <a href="?status=FULL_REFUND{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'FULL_REFUND' %}font-medium{% endif %}">Full Refund</a>
+                        </div>
+                        <div>
+                            <a href="?status=PARTIAL_REFUND{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'PARTIAL_REFUND' %}font-medium{% endif %}">Partial Refund</a>
+                        </div>
+                        <div>
+                            <a href="?status=AMBIGUOUS{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'AMBIGUOUS' %}font-medium{% endif %}">Ambiguous</a>
+                        </div>
+                        <div>
+                            <a href="?status=NOT_FOUND{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'NOT_FOUND' %}font-medium{% endif %}">Not Found</a>
+                        </div>
+                        <div>
+                            <a href="?status=CANCELED{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'CANCELED' %}font-medium{% endif %}">Canceled</a>
+                        </div>
+                        <div>
+                            <a href="?status=FAILED{% if search_query %}&search={{ search_query }}{% endif %}{% if date_filter %}&date_filter={{ date_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if status_filter == 'FAILED' %}font-medium{% endif %}">Failed</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- By created at -->
+                <div>
+                    <h4 class="text-white font-medium mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L4.293 6.707A1 1 0 014 6V4z"></path>
+                        </svg>
+                        By created at
+                    </h4>
+                    <div class="space-y-2">
+                        <div>
+                            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if not date_filter %}font-medium{% endif %}">Any date</a>
+                        </div>
+                        <div>
+                            <a href="?date_filter=today{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if date_filter == 'today' %}font-medium{% endif %}">Today</a>
+                        </div>
+                        <div>
+                            <a href="?date_filter=week{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if date_filter == 'week' %}font-medium{% endif %}">Past 7 days</a>
+                        </div>
+                        <div>
+                            <a href="?date_filter=month{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if date_filter == 'month' %}font-medium{% endif %}">This month</a>
+                        </div>
+                        <div>
+                            <a href="?date_filter=year{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                               class="text-admin-blue hover:text-blue-400 text-sm {% if date_filter == 'year' %}font-medium{% endif %}">This year</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Select all functionality
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.transaction-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+
+        // Update selected count
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.transaction-checkbox:checked').length;
+            document.getElementById('selected-count').textContent = `${selected} of {{ total_count }} selected`;
+        }
+
+        // Add event listeners to checkboxes
+        document.querySelectorAll('.transaction-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+
+        // Bulk action form handling
+        document.querySelector('select[name="action"]').addEventListener('change', function() {
+            const statusSelect = document.querySelector('select[name="new_status"]');
+            
+            // Hide status select by default
+            statusSelect.style.display = 'none';
+            
+            // Show status select if update_status is selected
+            if (this.value === 'update_status') {
+                statusSelect.style.display = 'block';
+            }
+        });
+
+        // Confirm bulk delete
+        document.getElementById('bulk-form').addEventListener('submit', function(e) {
+            const action = document.querySelector('select[name="action"]').value;
+            const selectedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
+            
+            if (action === 'delete' && selectedCount > 0) {
+                if (!confirm(`Are you sure you want to delete ${selectedCount} transaction(s)? This action cannot be undone.`)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

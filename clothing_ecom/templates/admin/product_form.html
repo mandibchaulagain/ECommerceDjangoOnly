@@ -1,0 +1,303 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_edit %}Change product{% else %}Add product{% endif %} - StyleHub Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'admin-dark': '#1a1a1a',
+                        'admin-darker': '#0f0f0f',
+                        'admin-blue': '#4a90e2',
+                        'admin-sidebar': '#2c3e50'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-admin-darker text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-admin-dark border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-white">StyleHub Admin</h1>
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="{% url 'admin_dashboard' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="{% url 'admin_product_list' %}" class="text-white hover:text-gray-300 px-3 py-2 text-sm font-medium">Products</a>
+                        <a href="{% url 'admin_transaction_list' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Transactions</a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">View Site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <div class="mb-6">
+            <nav class="flex text-sm text-gray-400">
+                <a href="{% url 'admin_dashboard' %}" class="hover:text-white">Home</a>
+                <span class="mx-2">›</span>
+                <a href="{% url 'admin_product_list' %}" class="hover:text-white">Products</a>
+                <span class="mx-2">›</span>
+                <span class="text-white">{% if is_edit %}Change product{% else %}Add product{% endif %}</span>
+            </nav>
+        </div>
+
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-white">{% if is_edit %}Change product{% else %}Add product{% endif %}</h1>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg mb-4 {% if message.tags == 'error' %}bg-red-900 border border-red-700 text-red-200{% elif message.tags == 'success' %}bg-green-900 border border-green-700 text-green-200{% else %}bg-blue-900 border border-blue-700 text-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="POST" enctype="multipart/form-data" class="space-y-6" id="product-form">
+            {% csrf_token %}
+            
+            <div class="bg-admin-dark rounded-lg border border-gray-700 overflow-hidden">
+                <!-- Form Header -->
+                <div class="bg-admin-darker px-6 py-4 border-b border-gray-700">
+                    <h2 class="text-lg font-medium text-white">Product Information</h2>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="p-6 space-y-6">
+                    <!-- Name Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_name" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Name: <span class="text-red-400">*</span>
+                        </label>
+                        <div class="md:col-span-3">
+                            <input type="text" name="name" id="id_name" required 
+                                   value="{% if product %}{{ product.name }}{% endif %}"
+                                   class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">
+                            <p class="mt-1 text-xs text-gray-400">Enter the product name</p>
+                        </div>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_description" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Description: <span class="text-red-400">*</span>
+                        </label>
+                        <div class="md:col-span-3">
+                            <textarea name="description" id="id_description" rows="4" required
+                                      class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">{% if product %}{{ product.description }}{% endif %}</textarea>
+                            <p class="mt-1 text-xs text-gray-400">Detailed description of the product</p>
+                        </div>
+                    </div>
+
+                    <!-- Price Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_price" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Price: <span class="text-red-400">*</span>
+                        </label>
+                        <div class="md:col-span-3">
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-gray-400">$</span>
+                                <input type="number" name="price" id="id_price" step="0.01" min="0" required
+                                       value="{% if product %}{{ product.price }}{% endif %}"
+                                       class="w-full bg-admin-darker border border-gray-600 rounded pl-8 pr-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">Price in USD (e.g., 29.99)</p>
+                        </div>
+                    </div>
+
+                    <!-- Category Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_category" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Category: <span class="text-red-400">*</span>
+                        </label>
+                        <div class="md:col-span-3">
+                            <select name="category" id="id_category" required
+                                    class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">
+                                <option value="">---------</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}" {% if product and product.category == category %}selected{% endif %}>{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="mt-1 text-xs text-gray-400">Select product category</p>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Available Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_quantity_available" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Quantity available: <span class="text-red-400">*</span>
+                        </label>
+                        <div class="md:col-span-3">
+                            <input type="number" name="quantity_available" id="id_quantity_available" min="0" required
+                                   value="{% if product %}{{ product.quantity_available }}{% else %}0{% endif %}"
+                                   class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">
+                            <p class="mt-1 text-xs text-gray-400">Number of items in stock</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Field -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label for="id_image" class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Image: {% if not is_edit %}<span class="text-red-400">*</span>{% endif %}
+                        </label>
+                        <div class="md:col-span-3">
+                            {% if product and product.image %}
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-400 mb-2">Current image:</p>
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-32 h-32 object-cover rounded border border-gray-600">
+                                <p class="text-xs text-gray-500 mt-1">{{ product.image.name }}</p>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-2">Change image:</p>
+                            {% endif %}
+                            <input type="file" name="image" id="id_image" accept="image/*" {% if not is_edit %}required{% endif %}
+                                   class="w-full bg-admin-darker border border-gray-600 rounded px-3 py-2 text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-admin-blue file:text-white hover:file:bg-blue-600 focus:outline-none focus:border-admin-blue focus:ring-1 focus:ring-admin-blue">
+                            <p class="mt-1 text-xs text-gray-400">Upload product image (JPG, PNG, GIF)</p>
+                        </div>
+                    </div>
+
+                    <!-- Created At (for edit only) -->
+                    {% if is_edit and product %}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <label class="block text-sm font-medium text-gray-300 md:text-right md:pt-2">
+                            Created at:
+                        </label>
+                        <div class="md:col-span-3">
+                            <p class="text-gray-400 py-2">{{ product.created_at|date:"M j, Y, g:i a" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-700">
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-admin-blue hover:bg-blue-600 text-white px-6 py-2 rounded font-medium transition-colors">
+                        {% if is_edit %}Save changes{% else %}Save{% endif %}
+                    </button>
+                    <button type="submit" name="save_and_add_another" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded font-medium transition-colors">
+                        Save and add another
+                    </button>
+                    <button type="submit" name="save_and_continue" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded font-medium transition-colors">
+                        Save and continue editing
+                    </button>
+                </div>
+                <div class="flex space-x-4">
+                    {% if is_edit %}
+                    <a href="{% url 'admin_product_delete' product.id %}" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-medium transition-colors">
+                        Delete
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'admin_product_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded font-medium transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Help Text -->
+        <div class="mt-8 bg-admin-dark rounded-lg border border-gray-700 p-6">
+            <h3 class="text-lg font-medium text-white mb-4">Help</h3>
+            <div class="space-y-2 text-sm text-gray-400">
+                <p><strong>Name:</strong> Enter a descriptive name for your product.</p>
+                <p><strong>Description:</strong> Provide detailed information about the product features and benefits.</p>
+                <p><strong>Price:</strong> Set the selling price in USD. Use decimal format for cents (e.g., 29.99).</p>
+                <p><strong>Category:</strong> Choose the appropriate category for better organization.</p>
+                <p><strong>Quantity:</strong> Set the number of items available in stock.</p>
+                <p><strong>Image:</strong> Upload a high-quality product image. Recommended size: 800x800 pixels.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            const name = document.getElementById('id_name').value.trim();
+            const description = document.getElementById('id_description').value.trim();
+            const price = document.getElementById('id_price').value;
+            const category = document.getElementById('id_category').value;
+            const quantity = document.getElementById('id_quantity_available').value;
+            
+            let errors = [];
+            
+            if (!name) errors.push('Name is required');
+            if (!description) errors.push('Description is required');
+            if (!price || price <= 0) errors.push('Price must be greater than 0');
+            if (!category) errors.push('Category is required');
+            if (quantity === '' || quantity < 0) errors.push('Quantity must be 0 or greater');
+            
+            {% if not is_edit %}
+            const image = document.getElementById('id_image').files[0];
+            if (!image) errors.push('Image is required');
+            {% endif %}
+            
+            if (errors.length > 0) {
+                e.preventDefault();
+                alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                return false;
+            }
+        });
+
+        // Image preview
+        document.getElementById('id_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPG, PNG, or GIF)');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image file size must be less than 5MB');
+                    this.value = '';
+                    return;
+                }
+                
+                // Show preview (optional)
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // You can add image preview functionality here
+                    console.log('Image loaded successfully');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Auto-resize textarea
+        const textarea = document.getElementById('id_description');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Price formatting
+        document.getElementById('id_price').addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    </script>
+</body>
+</html>

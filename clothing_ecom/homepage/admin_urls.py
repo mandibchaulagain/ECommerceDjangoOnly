@@ -1,16 +1,8 @@
 from django.urls import path
-from .views import home,thankyoupage,product_detail,subscribe_newsletter
 from . import admin_views
+
 urlpatterns = [
-    path('', home, name='home'),
-    path('thankyou/',thankyoupage, name="thankyou"),
-    # Product pages
-    path('product/<int:product_id>/',product_detail, name="product_detail"),
-
-    # Newsletter
-    path('subscribe/', subscribe_newsletter, name='subscribe_newsletter'),
-
-    #padmin
+    # Dashboard
     path('padmin/', admin_views.admin_dashboard, name='admin_dashboard'),
     
     # Product management
