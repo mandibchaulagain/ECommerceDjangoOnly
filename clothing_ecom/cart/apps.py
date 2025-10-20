@@ -6,4 +6,4 @@ class CartConfig(AppConfig):
     name = 'cart'
 
 
-#this ecom project is done well
+#hoh
