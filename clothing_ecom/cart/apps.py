@@ -6,4 +6,4 @@ class CartConfig(AppConfig):
     name = 'cart'
 
 
-#gik
+#gij
